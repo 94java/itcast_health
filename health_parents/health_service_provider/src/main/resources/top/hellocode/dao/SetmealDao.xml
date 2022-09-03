@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="top.hellocode.dao.SetmealDao">
+    <insert id="add" parameterType="top.hellocode.pojo.Setmeal">
+        <selectKey order="AFTER" keyProperty="id" resultType="int">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_setmeal
+            (code,name,sex,age,helpCode,price,remark,attention,img)
+        values
+            (#{code},#{name},#{sex},#{age},#{helpCode},#{price},#{remark},#{attention},#{img})
+    </insert>
+    <insert id="setSetmealAndCheckGroup" parameterType="map">
+        insert into t_setmeal_checkgroup
+            (setmeal_id,checkgroup_id)
+        values
+            (#{setmealId},#{checkgroupIds})
+    </insert>
+    <select id="findPage" parameterType="string" resultType="top.hellocode.pojo.Setmeal">
+        select * from t_setmeal
+        <if test="value != null and value.length > 0">
+            where name = #{queryString} or code = #{queryString} or helpCode = #{queryString}
+        </if>
+    </select>
+
+    <select id="findAll" resultType="top.hellocode.pojo.Setmeal">
+        select * from t_setmeal
+    </select>
+
+
+    <resultMap id="baseResultMap" type="top.hellocode.pojo.Setmeal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="price" property="price"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <result column="img" property="img"/>
+    </resultMap>
+    
+    <resultMap id="findByIdResultMap" type="top.hellocode.pojo.Setmeal"
+               extends="baseResultMap">
+        <collection property="checkGroups"
+                    ofType="top.hellocode.pojo.CheckGroup"
+                    javaType="ArrayList"
+                    column="id"
+                    select="top.hellocode.dao.CheckGroupDao.findCheckGroupById"/>
+    </resultMap>
+
+
+    <select id="findById" parameterType="int" resultMap="findByIdResultMap">
+        select * from t_setmeal  where id=#{id}
+    </select>
+
+    <select id="findSetmealCount" resultType="map">
+        select s.name,count(o.id) as value
+        from t_order o ,t_setmeal s
+        where o.setmeal_id = s.id
+        group by s.name
+    </select>
+</mapper>
